@@ -1,11 +1,27 @@
 use owo_colors::OwoColorize;
+use std::env::consts::ARCH;
+use std::env::var;
+use std::path::PathBuf;
 use std::process::Command;
+use std::thread::{self};
+// use std::process::Command;
 // use std::time::Instant;
-use std::{env::var, path::PathBuf};
-use whoami::{arch, devicename, distro, username};
+// use std::{env::var, path::PathBuf};
+// use sysinfo::{CpuExt, System, SystemExt};
+use whoami::{devicename, distro, username};
 
 // TODO color icons
 // TODO better formatting
+
+// #define BOLD "\x1B[1m"
+// #define RED "\x1B[31m"
+// #define YEL "\x1B[33m"
+// #define GRN "\x1B[32m"
+// #define CYN "\x1B[36m"
+// #define BLU "\x1B[34m"
+// #define MAG "\x1B[35m"
+// #define WHT "\x1B[37m"
+// #define RESET "\x1B[0m"
 
 pub fn mac_art() -> &'static str {
     r#"
@@ -18,12 +34,15 @@ pub fn mac_art() -> &'static str {
 }
 
 pub fn linux_art() -> &'static str {
-    r#"
-                                     ____  _____
-               ____ ___  ____ ______/ __ \/ ___/
-              / __ `__ \/ __ `/ ___/ / / /\__ \
-             / / / / / / /_/ / /__/ /_/ /___/ /
-            /_/ /_/ /_/\__,_/\___/\____//____/
+    r#"\x1B[36m
+          /\
+         /  \
+        /\   \\x1B[37m
+       /      \
+      /   ,,   \
+     /   |  |  -\
+    /_-''    ''-_\
+    \x1B[0m
     "#
 }
 
@@ -37,50 +56,75 @@ fn main() {
         art = linux_art();
     }
 
-    // let shell_path = PathBuf::from(var("SHELL").unwrap_or(String::from("N/A")));
-    // let shell = shell_path
-    //     .file_name()
-    //     .expect("Could not get $SHELL path")
-    //     .to_str()
-    //     .unwrap();
-    //
-    // let pkg_count = Command::new("sh")
-    //     .arg("-c")
-    //     .arg("find /opt/homebrew/Cellar/*  -maxdepth 0 -type d | wc -l")
-    //     .output()
-    //     .expect("Failed to execute command");
-    //
+    let shell_handle = thread::spawn(|| {
+        let shell_path = PathBuf::from(var("SHELL").unwrap_or_else(|_| "N/A".to_string()));
+        shell_path
+            .file_name()
+            .and_then(|name| name.to_str())
+            .unwrap_or("N/A")
+            .to_owned()
+    });
+
+    let pkg_count_handle = thread::spawn(|| {
+        Command::new("sh")
+            .arg("-c")
+            .arg("find /opt/homebrew/Cellar/* -maxdepth 0 -type d | wc -l")
+            .output()
+            .map(|output| String::from_utf8_lossy(&output.stdout).trim().to_owned())
+            .unwrap_or_else(|_| "N/A".to_string())
+    });
+
+    let distro_handle = thread::spawn(distro);
+    let devicename_handle = thread::spawn(devicename);
+    let username_handle = thread::spawn(username);
+
     let len = art.len() + 200;
     let mut formatted_string = String::with_capacity(len);
 
-    formatted_string += art.green().bold().to_string().as_str();
-    formatted_string += "\n       ╭──────────╮";
-    formatted_string.push_str(&format!(
-        "\n       │  {:<8}│ {}",
-        " user".bold(),
-        username().red().bold()
-    ));
-    formatted_string.push_str(&format!(
-        "\n       │  {:<8}│ {}",
-        " os".bold(),
-        distro().yellow().bold()
-    ));
-    formatted_string.push_str(&format!(
-        "\n       │  {:<8}│ {}",
-        "󰌢 host".bold(),
-        devicename().green().bold()
-    ));
+    formatted_string += art.white().bold().to_string().as_str();
+
+    formatted_string += "\n        ╭──────────╮\x1B[1m";
+    formatted_string += "\n        \x1B[37m│\x1B[31m  \x1B[37m user  │\x1B[31m  ";
+    formatted_string += username_handle.join().unwrap().as_str();
+    formatted_string += "\n        \x1B[37m│\x1B[33m  \x1B[37m os    │\x1B[33m  ";
+    formatted_string += distro_handle.join().unwrap().as_str();
+    formatted_string += "\n        \x1B[37m│\x1B[32m  󰌢\x1B[37m host  │\x1B[32m  ";
+    formatted_string += devicename_handle.join().unwrap().as_str();
+    formatted_string += "\n        \x1B[37m│\x1B[36m  \x1B[37m shell │\x1B[36m  ";
+    formatted_string += shell_handle.join().unwrap().as_str();
+    formatted_string += "\n        \x1B[37m│\x1B[34m  \x1B[37m arch  │\x1B[34m  ";
+    formatted_string += ARCH;
+    formatted_string += "\n        \x1B[37m│\x1B[35m  󰏖\x1B[37m pkgs  │\x1B[35m  ";
+    formatted_string += pkg_count_handle.join().unwrap().as_str();
+    formatted_string += "\n        \x1B[37m╰──────────╯";
+
+    // formatted_string += "\n       ╭──────────╮";
     // formatted_string.push_str(&format!(
+    //     "\n       │  {:<8}│ {}",
+    //     " user".bold(),
+    //     username().red().bold()
+    // ));
+    // formatted_string.push_str(&format!(
+    //     "\n       │  {:<8}│ {}",
+    //     " os".bold(),
+    //     distro().yellow().bold()
+    // ));
+    // formatted_string.push_str(&format!(
+    //     "\n       │  {:<8}│ {}",
+    //     "󰌢 host".bold(),
+    //     devicename().green().bold()
+    // ));
+    // formatted_string.push_str(&format!( // slow
     //     "\n       │  {:<8}│ {:<10}",
     //     " shell".bold(),
     //     shell.cyan().bold()
     // ));
-    formatted_string.push_str(&format!(
-        "\n       │  {:<8}│ {:<5}",
-        " arch".bold(),
-        arch().to_string().blue().bold()
-    ));
     // formatted_string.push_str(&format!(
+    //     "\n       │  {:<8}│ {:<5}",
+    //     " arch".bold(),
+    //     arch().to_string().blue().bold()
+    // ));
+    // formatted_string.push_str(&format!( // slow
     //     "\n       │  {:<8}│ {:<5}",
     //     "󰏖 pkgs".bold(),
     //     String::from_utf8_lossy(&pkg_count.stdout)
@@ -88,40 +132,7 @@ fn main() {
     //         .magenta()
     //         .bold()
     // ));
-    formatted_string += "\n       ╰──────────╯";
-
-    // println!("\n{}", MAC.green().bold());
-    // println!("{:>13}", "╭───────────╮");
-    // println!("│{:>11}│ {}", " user".bold(), username().red().bold());
-    // println!("│{:>11}│ {}", "os".bold(), distro().yellow().bold());
-    // println!("│{:>11}│ {}", "host".bold(), devicename().green().bold());
-    // println!("{:>19} {:<10}", "shell".bold(), shell.cyan().bold());
-    // println!(
-    //     "{:>19} {:<5}",
-    //     "arch".bold(),
-    //     arch().to_string().blue().bold()
-    // );
-    // println!(
-    //     "{:>19} {:<5}",
-    //     "pkgs".bold(),
-    //     String::from_utf8_lossy(&pkg_count.stdout)
-    //         .trim()
-    //         .magenta()
-    //         .bold()
-    // );
-
-    // colors
-    // println!();
-    // print!("{:>19}", " ");
-    // print!("{}", "●".white());
-    // print!("{:>3}", "●".red());
-    // print!("{:>3}", "●".yellow());
-    // print!("{:>3}", "●".cyan());
-    // print!("{:>3}", "●".green());
-    // print!("{:>3}", "●".blue());
-    // print!("{:>3}", "●".magenta());
-    // print!("{:>3}", "●".black());
-    // println!();
+    // formatted_string += "\n       ╰──────────╯";
 
     formatted_string.push_str(&format!("\n{:>13}", " "));
     formatted_string.push_str(&format!("{}", "●".white()));
@@ -132,9 +143,27 @@ fn main() {
     formatted_string.push_str(&format!("{:>3}", "●".blue()));
     formatted_string.push_str(&format!("{:>3}", "●".magenta()));
     formatted_string.push_str(&format!("{:>3}\n", "●".black()));
-    formatted_string.push_str("\n");
+    formatted_string.push_str("\n\x1B[0m");
 
     print!("{}", formatted_string);
     // let elapsed = now.elapsed();
     // println!("Elapsed: {:.2?}", elapsed);
 }
+
+// pub fn get_logo(sys: &System) -> Option<String> {
+//     sys.name().map(|sys_name| {
+//         if sys_name.contains("Debian") {
+//             get_logo_by_distro(Deb)
+//         } else if sys_name.contains("Ubuntu") {
+//             get_logo_by_distro(Ubuntu)
+//         } else if sys_name.contains("Fedora") {
+//             get_logo_by_distro(Fedora)
+//         } else if sys_name.contains("Arch") {
+//             get_logo_by_distro(Arch)
+//         } else if sys_name.contains("Red Hat") {
+//             get_logo_by_distro(Redhat)
+//         } else {
+//             get_logo_by_distro(Linux)
+//         }
+//     })
+// }
