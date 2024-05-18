@@ -10,8 +10,8 @@ use std::thread::{self};
 // use sysinfo::{CpuExt, System, SystemExt};
 use whoami::{devicename, distro, username};
 
-// TODO color icons
 // TODO better formatting
+// 56ms, 20ms
 
 // #define BOLD "\x1B[1m"
 // #define RED "\x1B[31m"
@@ -98,52 +98,26 @@ fn main() {
     formatted_string += pkg_count_handle.join().unwrap().as_str();
     formatted_string += "\n        \x1B[37m╰──────────╯";
 
-    // formatted_string += "\n       ╭──────────╮";
-    // formatted_string.push_str(&format!(
-    //     "\n       │  {:<8}│ {}",
-    //     " user".bold(),
-    //     username().red().bold()
-    // ));
-    // formatted_string.push_str(&format!(
-    //     "\n       │  {:<8}│ {}",
-    //     " os".bold(),
-    //     distro().yellow().bold()
-    // ));
-    // formatted_string.push_str(&format!(
-    //     "\n       │  {:<8}│ {}",
-    //     "󰌢 host".bold(),
-    //     devicename().green().bold()
-    // ));
-    // formatted_string.push_str(&format!( // slow
-    //     "\n       │  {:<8}│ {:<10}",
-    //     " shell".bold(),
-    //     shell.cyan().bold()
-    // ));
-    // formatted_string.push_str(&format!(
-    //     "\n       │  {:<8}│ {:<5}",
-    //     " arch".bold(),
-    //     arch().to_string().blue().bold()
-    // ));
-    // formatted_string.push_str(&format!( // slow
-    //     "\n       │  {:<8}│ {:<5}",
-    //     "󰏖 pkgs".bold(),
-    //     String::from_utf8_lossy(&pkg_count.stdout)
-    //         .trim()
-    //         .magenta()
-    //         .bold()
-    // ));
-    // formatted_string += "\n       ╰──────────╯";
+    // formatted_string.push_str(&format!("\n{:>13}", " "));
+    // formatted_string.push_str(&format!("{}", "●".white()));
+    // formatted_string.push_str(&format!("{:>3}", "●".red()));
+    // formatted_string.push_str(&format!("{:>3}", "●".yellow()));
+    // formatted_string.push_str(&format!("{:>3}", "●".cyan()));
+    // formatted_string.push_str(&format!("{:>3}", "●".green()));
+    // formatted_string.push_str(&format!("{:>3}", "●".blue()));
+    // formatted_string.push_str(&format!("{:>3}", "●".magenta()));
+    // formatted_string.push_str(&format!("{:>3}\n", "●".black()));
+    // formatted_string.push_str("\n\x1B[0m");
 
-    formatted_string.push_str(&format!("\n{:>13}", " "));
-    formatted_string.push_str(&format!("{}", "●".white()));
-    formatted_string.push_str(&format!("{:>3}", "●".red()));
-    formatted_string.push_str(&format!("{:>3}", "●".yellow()));
-    formatted_string.push_str(&format!("{:>3}", "●".cyan()));
-    formatted_string.push_str(&format!("{:>3}", "●".green()));
-    formatted_string.push_str(&format!("{:>3}", "●".blue()));
-    formatted_string.push_str(&format!("{:>3}", "●".magenta()));
-    formatted_string.push_str(&format!("{:>3}\n", "●".black()));
-    formatted_string.push_str("\n\x1B[0m");
+    formatted_string += "\n              ";
+    formatted_string += "●";
+    formatted_string += "  \x1B[31m●";
+    formatted_string += "  \x1B[33m●";
+    formatted_string += "  \x1B[32m●";
+    formatted_string += "  \x1B[36m●";
+    formatted_string += "  \x1B[34m●";
+    formatted_string += "  \x1B[35m●";
+    formatted_string += "  \x1B[30m●\x1b[0m\n";
 
     print!("{}", formatted_string);
     // let elapsed = now.elapsed();
