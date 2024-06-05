@@ -1,6 +1,9 @@
 use owo_colors::OwoColorize;
+
+
 use std::env::consts::ARCH;
 use std::env::var;
+use std::io::{self, stdout, Write};
 use std::path::PathBuf;
 use std::process::Command;
 use std::thread::{self};
@@ -78,6 +81,22 @@ fn main() {
     let devicename_handle = thread::spawn(devicename);
     let username_handle = thread::spawn(username);
 
+    const MAX_DATA_LENGTH: usize = 64000;
+
+    let src_data = "\n        ╭──────────╮\x1B[1m";
+    let src = src_data.as_ptr();
+
+    let art_ptr = art.as_ptr();
+
+    // Create destination buffer (with extra space for appending)
+    let mut dst_data = [0u8; 400];
+    let dst = dst_data.as_mut_ptr();
+
+    unsafe {
+        append_bytes(art_ptr, dst, art.len(), 0);
+    }
+    io::Stdout::write_all(&mut stdout(), &dst_data).unwrap();
+
     let len = art.len() + 200;
     let mut formatted_string = String::with_capacity(len);
 
@@ -122,6 +141,12 @@ fn main() {
     print!("{}", formatted_string);
     // let elapsed = now.elapsed();
     // println!("Elapsed: {:.2?}", elapsed);
+}
+
+#[inline]
+unsafe fn append_bytes(src: *const u8, dst: *mut u8, count: usize, dst_index: usize) {
+    let dst_offset = dst.add(dst_index); // Calculate the destination offset
+    std::ptr::copy_nonoverlapping(src, dst_offset, count);
 }
 
 // pub fn get_logo(sys: &System) -> Option<String> {
