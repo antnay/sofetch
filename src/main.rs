@@ -83,8 +83,8 @@ fn main() {
 
     const MAX_DATA_LENGTH: usize = 64000;
 
-    let src_data = "\n        ╭──────────╮\x1B[1m";
-    let src = src_data.as_ptr();
+    //let src_data = "\n        ╭──────────╮\x1B[1m";
+    //let src = src_data.as_ptr();
 
     let art_ptr = art.as_ptr();
 
@@ -100,7 +100,7 @@ fn main() {
     let len = art.len() + 200;
     let mut formatted_string = String::with_capacity(len);
 
-    formatted_string += art.white().bold().to_string().as_str();
+    //formatted_string += art.white().bold().to_string().as_str();
 
     formatted_string += "\n        ╭──────────╮\x1B[1m";
     formatted_string += "\n        \x1B[37m│\x1B[31m  \x1B[37m user  │\x1B[31m  ";
