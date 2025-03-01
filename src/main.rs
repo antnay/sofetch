@@ -37,15 +37,14 @@ pub fn mac_art() -> &'static str {
 }
 
 pub fn linux_art() -> &'static str {
-    r#"\x1B[36m
-          /\
-         /  \
-        /\   \\x1B[37m
-       /      \
-      /   ,,   \
-     /   |  |  -\
-    /_-''    ''-_\
-    \x1B[0m
+    r#"
+                  /\
+                 /  \
+                /\   \\
+               /      \
+              /   ,,   \
+             /   |  |  -\
+            /_-''    ''-_\
     "#
 }
 
@@ -69,12 +68,21 @@ fn main() {
     });
 
     let pkg_count_handle = thread::spawn(|| {
-        Command::new("sh")
-            .arg("-c")
-            .arg("find /opt/homebrew/Cellar/* -maxdepth 0 -type d | wc -l")
-            .output()
-            .map(|output| String::from_utf8_lossy(&output.stdout).trim().to_owned())
-            .unwrap_or_else(|_| "N/A".to_string())
+        if cfg!(target_os = "macos") {
+            Command::new("sh")
+                .arg("-c")
+                .arg("find /opt/homebrew/Cellar/* -maxdepth 0 -type d | wc -l")
+                .output()
+                .map(|output| String::from_utf8_lossy(&output.stdout).trim().to_owned())
+                .unwrap_or_else(|_| "N/A".to_string())
+        } else {
+            Command::new("sh")
+                .arg("-c")
+                .arg("pacman -Qq | wc -l")
+                .output()
+                .map(|output| String::from_utf8_lossy(&output.stdout).trim().to_owned())
+                .unwrap_or_else(|_| "N/A".to_string())
+        }
     });
 
     let distro_handle = thread::spawn(distro);
